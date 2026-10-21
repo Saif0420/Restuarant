@@ -1,0 +1,25 @@
+.app-shell {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem;
+}
+
+.chat-card {
+  width: 100%;
+  max-width: 720px;
+  height: min(85vh, 760px);
+  display: flex;
+  flex-direction: column;   /* header, list, footer from top to bottom */
+  overflow: hidden;
+  border: none;
+  border-radius: 1rem;
+}
+
+.chat-footer {
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
