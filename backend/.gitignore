@@ -1,0 +1,11 @@
+# Environment vars and secrets
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+
+# Logs and macOS files
+*.log
+.DS_store
