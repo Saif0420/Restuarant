@@ -66,6 +66,28 @@ const intents ={
         "vegan", "vegan food", "plant-based", "dairy-free", "without animal products"
     ],
 
-    
+    gluten_free: [ 
+        "gluten free", "without gluten", "no gluten", "gluten frei"
+    ],
 
+    spicy_food: [
+        "spicy", "spicy food", "hot", "extra hot", "chilli", "red hot", "extra spicy"
+    ],
+
+    mild_food: [
+        "less spicy", "mild spice", "without spice", "no chilli", "not spicy"
+    ],
+
+    start_order: [
+        "I want to order", "order start", "start order", "begin order", 
+        "I would like to order", "I want to place an order", "place my order", 
+        "order please", "I want to buy", "I am ready to order"
+    ],
+
+    add_items: [
+        "add", "I want", "add this to the cart", "add this also", "give me", 
+        "get me", "order", "I would like"
+    ],
+
+    
 }
