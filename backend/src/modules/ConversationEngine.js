@@ -129,6 +129,12 @@ function createConversationEngine() {
             }
         } else if (
             session.stage === "awaiting_confirmation" &&
+            (userText.includes("cancel order") || userText === "no")
+        ) {
+            reply = "Checkout cancelled. Your cart has been kept, so you can make changes or try again.";
+            session.stage = "browsing";
+        } else if (
+            session.stage === "awaiting_confirmation" &&
             userText.includes("confirm order")
         ) {
             reply = `Your order has been confirmed!\n\n${formatOrder(session.order)}`;
