@@ -16,6 +16,12 @@ function App() {
     createMessage('bot', 'Welcome to ByteBites! What would you like to order?'),
   ]);
 
+  function handleReset() {
+  setMessages([
+    createMessage('bot', 'Welcome to ByteBites! What would you like to order?'),
+  ]);
+  }
+
   function handleSend(text) {
     setMessages((previous) => [
       ...previous,
@@ -56,6 +62,14 @@ function App() {
 
         <div className="card-footer chat-footer">
           <div className="chat-controls">
+            <button
+              type="button"
+              className="btn btn-outline-secondary btn-sm"
+              onClick={handleReset}
+            >
+              Reset conversation
+            </button>
+
             <button
               type="button"
               className="btn btn-outline-secondary btn-sm"
