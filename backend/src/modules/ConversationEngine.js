@@ -116,6 +116,24 @@ function createConversationEngine() {
             }
 
             reply = `${item.name} added to your cart. ${formatOrder(session.order)}`;
+        } else if (
+            userText.includes("checkout") ||
+            userText.includes("check out") ||
+            userText.includes("complete my order")
+        ) {
+            if (session.order.length === 0) {
+                reply = "Your cart is empty. Add something from our menu before checkout.";
+            } else {
+                reply = `${formatOrder(session.order)}\n\nWould you like to confirm this order? Type "confirm order" to complete it.`;
+                session.stage = "awaiting_confirmation";
+            }
+        } else if (
+            session.stage === "awaiting_confirmation" &&
+            userText.includes("confirm order")
+        ) {
+            reply = `Your order has been confirmed!\n\n${formatOrder(session.order)}`;
+            session.order = [];
+            session.stage = "browsing";
         } else if (userText.includes("cart") || userText.includes("order summary")) {
             reply = formatOrder(session.order);
         } else if (userText.includes("clear order") || userText.includes("empty cart")) {
