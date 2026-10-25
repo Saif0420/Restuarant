@@ -89,5 +89,30 @@ const intents ={
         "get me", "order", "I would like"
     ],
 
-    
+    remove_items: [
+        "remove", "delete", "take off the cart", "remove from my order", 
+        "delete this from my order"
+    ],
+
+    change_quantity: [
+        "change quantity", "make it", "change the number", "increase quantity", 
+        "decrease quantity"
+    ],
+
+    view_order: [
+        "my order", "view order", "open my order", "I want to see my order",
+        "show my order", "what did I order", "order summary", "my cart", 
+        "shopping cart", "can I see my cart?"
+    ],
+
+    clear_order: [
+        "clear order", "empty cart", "remove everything", "clear my cart",
+        "cancel everything in my order", "delete everything in my order"
+    ],
+
+    checkout: [
+        "checkout", "check out", "complete my order", "finish my order", 
+        "proceed to payment"
+    ]
+
 }
