@@ -1,0 +1,32 @@
+.message-row { display: flex; margin-bottom: 0.75rem; }
+.message-row.from-user { justify-content: flex-end; }   /* right */
+.message-row.from-bot  { justify-content: flex-start; } /* left */
+
+.bubble {
+  max-width: 75%;
+  padding: 0.6rem 0.9rem;
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+.from-user .bubble {
+  background: var(--bb-primary);
+  color: #fff;
+  border-bottom-right-radius: 0.25rem;   /* small "tail" corner */
+}
+.from-bot .bubble {
+  background: var(--bb-bot-bubble);
+  border-bottom-left-radius: 0.25rem;
+}
+
+.bubble-text {
+  margin: 0;
+  white-space: pre-wrap;      /* keep line breaks from the AI's answers */
+  overflow-wrap: anywhere;    /* long words or links don't overflow */
+}
+.bubble-time {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.7rem;
+  text-align: right;
+  opacity: 0.75;
+}
