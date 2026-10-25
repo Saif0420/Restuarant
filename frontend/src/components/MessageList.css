@@ -1,0 +1,8 @@
+.message-list {
+  flex: 1;              /* fill all space between header and footer */
+  overflow-y: auto;     /* scroll inside the card, not the whole page */
+  list-style: none;
+  margin: 0;
+  padding: 1rem;
+  background: var(--bb-bg);
+}
