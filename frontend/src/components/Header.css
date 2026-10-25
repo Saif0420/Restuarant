@@ -1,0 +1,11 @@
+.chat-header {
+  display: flex;
+  justify-content: space-between;  /* title left, status right (step 9) */
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background: var(--bb-primary);
+  color: #fff;
+}
+
+.chat-title { margin: 0; font-size: 1.4rem; font-weight: 700; }
+.chat-subtitle { margin: 0; font-size: 0.85rem; opacity: 0.9; }
