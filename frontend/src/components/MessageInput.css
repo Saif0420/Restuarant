@@ -1,0 +1,20 @@
+.message-input { display: flex; gap: 0.5rem; }
+
+.message-input .form-control {
+  border-radius: 999px;
+  padding-left: 1rem;
+}
+
+/* Recolour a Bootstrap button by overriding its own variables */
+.btn-send {
+  --bs-btn-bg: var(--bb-primary);
+  --bs-btn-color: #fff;
+  --bs-btn-hover-bg: var(--bb-primary-dark);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-active-bg: var(--bb-primary-dark);
+  --bs-btn-active-color: #fff;
+  --bs-btn-disabled-bg: var(--bb-primary);
+  --bs-btn-disabled-color: #fff;
+  border-radius: 999px;
+  padding: 0.375rem 1.25rem;
+}
