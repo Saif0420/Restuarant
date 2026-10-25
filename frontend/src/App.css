@@ -71,3 +71,13 @@
   }
 }
 
+
+.chat-controls {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.chat-controls button {
+  border-radius: 999px;
+}

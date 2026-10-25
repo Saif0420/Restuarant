@@ -17,7 +17,6 @@ function App() {
   ]);
 
   function handleSend(text) {
-    // Temporary echo until the backend is connected in step 7
     setMessages((previous) => [
       ...previous,
       createMessage('user', text),
@@ -25,12 +24,48 @@ function App() {
     ]);
   }
 
+  function handleExport() {
+    const exportData = {
+      application: 'ByteBites',
+      exportedAt: new Date().toISOString(),
+      messageCount: messages.length,
+      messages,
+    };
+
+    const json = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    link.href = url;
+    link.download = `bytebites-chat-${new Date()
+      .toISOString()
+      .replace(/[:.]/g, '-')}.json`;
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="app-shell">
       <div className="chat-card card shadow-sm">
         <Header />
         <MessageList messages={messages} />
+
         <div className="card-footer chat-footer">
+          <div className="chat-controls">
+            <button
+              type="button"
+              className="btn btn-outline-secondary btn-sm"
+              onClick={handleExport}
+              disabled={messages.length === 0}
+            >
+              Export conversation (JSON)
+            </button>
+          </div>
+
           <MessageInput onSend={handleSend} />
         </div>
       </div>
