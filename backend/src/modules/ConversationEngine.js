@@ -45,6 +45,40 @@ function formatMenu(category) {
     return `${title} Menu:\n${itemLines.join("\n")}`;
 }
 
+function findMenuItem(itemText) {
+    const searchText = itemText.toLowerCase();
+
+    for (const [category, items] of Object.entries(MENU)) {
+        const item = items.find(menuItem => {
+            const name = menuItem.name.toLowerCase();
+            return searchText.includes(name);
+        });
+
+        if (item) {
+            return { ...item, category };
+        }
+    }
+
+    return null;
+}
+
+function formatOrder(order) {
+    if (order.length === 0) {
+        return "Your cart is empty. Ask me to add something from our menu!";
+    }
+
+    const lines = order.map(item =>
+        `${item.quantity} x ${item.name} - €${(item.price * item.quantity).toFixed(2)}`
+    );
+
+    const total = order.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
+    );
+
+    return `Your ByteBites Order:\n${lines.join("\n")}\nTotal: €${total.toFixed(2)}`;
+}
+
 function createConversationEngine() {
     const session = createSession();
 
@@ -62,8 +96,31 @@ function createConversationEngine() {
         const userText = text.trim().toLowerCase();
         let reply;
 
+        const item = findMenuItem(userText);
+
         if (userText.includes("menu")) {
             reply = "Welcome to ByteBites! Choose a category: burgers, pizza, pasta, sides, drinks, or desserts.";
+        } else if (item) {
+            const existingItem = session.order.find(
+                (orderItem) => orderItem.name === item.name
+            );
+
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                session.order.push({
+                    name: item.name,
+                    price: item.price,
+                    quantity: 1
+                });
+            }
+
+            reply = `${item.name} added to your cart. ${formatOrder(session.order)}`;
+        } else if (userText.includes("cart") || userText.includes("order summary")) {
+            reply = formatOrder(session.order);
+        } else if (userText.includes("clear order") || userText.includes("empty cart")) {
+            session.order = [];
+            reply = "Your cart has been cleared.";
         } else if (userText.includes("burger")) {
             reply = formatMenu("burgers");
         } else if (userText.includes("pizza")) {
