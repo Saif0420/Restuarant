@@ -45,3 +45,14 @@
   text-align: right;
   opacity: 0.75;
 }
+
+@media (max-width: 480px) {
+  .bubble {
+    max-width: 90%;
+    padding: 0.65rem 0.85rem;
+  }
+
+  .message-row {
+    margin-bottom: 0.7rem;
+  }
+}

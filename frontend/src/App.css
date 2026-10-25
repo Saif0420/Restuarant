@@ -35,3 +35,39 @@
   gap: 0.75rem;
   padding: 1rem 1.25rem;
 }
+
+@media (max-width: 768px) {
+  .app-shell {
+    padding: 0.75rem;
+    align-items: stretch;
+  }
+
+  .chat-card {
+    height: calc(100vh - 1.5rem);
+    max-height: 760px;
+    border-radius: 1rem;
+  }
+
+  .chat-footer {
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-shell {
+    padding: 0;
+  }
+
+  .chat-card {
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+    border: none;
+  }
+
+  .chat-footer {
+    padding: 0.75rem;
+  }
+}
+
