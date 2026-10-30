@@ -7,7 +7,7 @@ export default defineConfig({
     proxy: {
       // Forward Socket.IO traffic, including the WebSocket upgrade, to Flask
       '/socket.io': {
-        target: 'http://localhost:5173',
+        target: 'http://localhost:5000',
         ws: true,
       },
     },
