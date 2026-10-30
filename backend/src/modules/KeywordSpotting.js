@@ -214,3 +214,32 @@ function containsPhrase(text, phrase) {
 
     return pattern.test(text);
 }
+
+function detectIntent(message) {
+    const text = normalizeText(message);
+
+    if (!text) {
+        return "empty_message";
+    }
+
+    const matches = [];
+
+    for (const [intents, phrases] of Object.entries(intents)) {
+        for (const phrase of phrases) {
+            if (containsPhrase(text, phrase)) {
+                matches.push({
+                    intent, 
+                    phrase, 
+                    length: normalizeText(phrase).length
+                });
+            }
+        }
+    }
+
+    // will prefer the most specific matching phrase
+    matches.sort((a, b) => b.length -a.length);
+
+    return matches.length > 0
+        ? matches[0].intent
+        : "unknown";
+}
