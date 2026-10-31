@@ -5,7 +5,6 @@
   padding-left: 1rem;
 }
 
-/* Recolour a Bootstrap button by overriding its own variables */
 .btn-send {
   --bs-btn-bg: var(--bb-primary);
   --bs-btn-color: #fff;

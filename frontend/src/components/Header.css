@@ -1,6 +1,6 @@
 .chat-header {
   display: flex;
-  justify-content: space-between;  /* title left, status right (step 9) */
+  justify-content: space-between;  
   align-items: center;
   padding: 1rem 1.25rem;
   background: var(--bb-primary);

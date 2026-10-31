@@ -1,32 +1,58 @@
-.message-row { display: flex; margin-bottom: 0.75rem; }
-.message-row.from-user { justify-content: flex-end; }   /* right */
-.message-row.from-bot  { justify-content: flex-start; } /* left */
+.message-row {
+  display: flex;
+  margin-bottom: 0.85rem;
+}
+
+.message-row.from-user {
+  justify-content: flex-end;
+}
+
+.message-row.from-bot {
+  justify-content: flex-start;
+}
 
 .bubble {
   max-width: 75%;
-  padding: 0.6rem 0.9rem;
+  padding: 0.7rem 1rem;
   border-radius: 1rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06);
+  line-height: 1.5;
 }
+
 .from-user .bubble {
   background: var(--bb-primary);
   color: #fff;
-  border-bottom-right-radius: 0.25rem;   /* small "tail" corner */
+  border-bottom-right-radius: 0.25rem;
 }
+
 .from-bot .bubble {
   background: var(--bb-bot-bubble);
+  color: var(--bb-text);
+  border: 1px solid var(--bb-border);
   border-bottom-left-radius: 0.25rem;
 }
 
 .bubble-text {
   margin: 0;
-  white-space: pre-wrap;      /* keep line breaks from the AI's answers */
-  overflow-wrap: anywhere;    /* long words or links don't overflow */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
+
 .bubble-time {
   display: block;
-  margin-top: 0.25rem;
+  margin-top: 0.35rem;
   font-size: 0.7rem;
   text-align: right;
   opacity: 0.75;
+}
+
+@media (max-width: 480px) {
+  .bubble {
+    max-width: 90%;
+    padding: 0.65rem 0.85rem;
+  }
+
+  .message-row {
+    margin-bottom: 0.7rem;
+  }
 }
