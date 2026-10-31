@@ -26,13 +26,13 @@ function App() {
   useEffect(() => {
     function handleConnect() {
       setIsConnected(true);
-      setMessages([]);      // every new connection is a new conversation on the server
-      setIsWaiting(true);   // the greeting is on its way
+      setIsWaiting(true);     
     }
 
     function handleDisconnect() {
       setIsConnected(false);
       setIsWaiting(false);
+      setMessages([]);      
     }
 
     function handleAnswer(data) {
