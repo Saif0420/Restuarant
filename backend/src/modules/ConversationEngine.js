@@ -1,4 +1,9 @@
+
 const { createSession, resetSession } = require("./SessionState");
+const {
+    getFallbackResponse,
+    resetFallbackCount
+} = require("./Fallback");
 
 const MENU = {
     burgers: [
@@ -49,7 +54,7 @@ function findMenuItem(itemText) {
     const searchText = itemText.toLowerCase();
 
     for (const [category, items] of Object.entries(MENU)) {
-        const item = items.find(menuItem => {
+        const item = items.find((menuItem) => {
             const name = menuItem.name.toLowerCase();
             return searchText.includes(name);
         });
@@ -67,7 +72,7 @@ function formatOrder(order) {
         return "Your cart is empty. Ask me to add something from our menu!";
     }
 
-    const lines = order.map(item =>
+    const lines = order.map((item) =>
         `${item.quantity} x ${item.name} - €${(item.price * item.quantity).toFixed(2)}`
     );
 
@@ -95,11 +100,13 @@ function createConversationEngine() {
 
         const userText = text.trim().toLowerCase();
         let reply;
+        let wasFallback = false;
 
         const item = findMenuItem(userText);
 
         if (userText.includes("menu")) {
             reply = "Welcome to ByteBites! Choose a category: burgers, pizza, pasta, sides, drinks, or desserts.";
+
         } else if (item) {
             const existingItem = session.order.find(
                 (orderItem) => orderItem.name === item.name
@@ -116,6 +123,7 @@ function createConversationEngine() {
             }
 
             reply = `${item.name} added to your cart. ${formatOrder(session.order)}`;
+
         } else if (
             userText.includes("checkout") ||
             userText.includes("check out") ||
@@ -127,12 +135,14 @@ function createConversationEngine() {
                 reply = `${formatOrder(session.order)}\n\nWould you like to confirm this order? Type "confirm order" to complete it.`;
                 session.stage = "awaiting_confirmation";
             }
+
         } else if (
             session.stage === "awaiting_confirmation" &&
             (userText.includes("cancel order") || userText === "no")
         ) {
             reply = "Checkout cancelled. Your cart has been kept, so you can make changes or try again.";
             session.stage = "browsing";
+
         } else if (
             session.stage === "awaiting_confirmation" &&
             userText.includes("confirm order")
@@ -140,32 +150,62 @@ function createConversationEngine() {
             reply = `Your order has been confirmed!\n\n${formatOrder(session.order)}`;
             session.order = [];
             session.stage = "browsing";
-        } else if (userText.includes("cart") || userText.includes("order summary")) {
+
+        } else if (
+            userText.includes("cart") ||
+            userText.includes("order summary") ||
+            userText.includes("show my order")
+        ) {
             reply = formatOrder(session.order);
-        } else if (userText.includes("clear order") || userText.includes("empty cart")) {
+
+        } else if (
+            userText.includes("clear order") ||
+            userText.includes("empty cart")
+        ) {
             session.order = [];
             reply = "Your cart has been cleared.";
+
         } else if (userText.includes("burger")) {
             reply = formatMenu("burgers");
+
         } else if (userText.includes("pizza")) {
             reply = formatMenu("pizza");
+
         } else if (userText.includes("pasta")) {
             reply = formatMenu("pasta");
+
         } else if (userText.includes("side")) {
             reply = formatMenu("sides");
+
         } else if (userText.includes("drink")) {
             reply = formatMenu("drinks");
+
         } else if (userText.includes("dessert")) {
             reply = formatMenu("desserts");
-        } else if (userText.includes("hello") || userText.includes("hi")) {
+
+        } else if (/\b(hello|hi|hey)\b/.test(userText)) {
             reply = "Hey! Welcome to ByteBites. Would you like to see our menu?";
+
         } else {
-            reply = "I can help you browse our menu. Try asking for burgers, pizza, pasta, sides, drinks, or desserts.";
+            wasFallback = true;
+            reply = getFallbackResponse(session);
+        }
+
+        if (!wasFallback) {
+            resetFallbackCount(session);
         }
 
         session.conversationHistory.push(
-            { sender: "user", text: text.trim(), timestamp },
-            { sender: "bot", text: reply, timestamp: new Date().toISOString() }
+            {
+                sender: "user",
+                text: text.trim(),
+                timestamp
+            },
+            {
+                sender: "bot",
+                text: reply,
+                timestamp: new Date().toISOString()
+            }
         );
 
         return {
