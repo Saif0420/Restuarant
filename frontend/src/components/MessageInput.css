@@ -17,3 +17,15 @@
   border-radius: 999px;
   padding: 0.375rem 1.25rem;
 }
+
+.message-input .form-control:focus-visible {
+  outline: 3px solid var(--bb-primary);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+.btn-send:focus-visible {
+  outline: 3px solid var(--bb-primary-dark);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 2px #fff;
+}
