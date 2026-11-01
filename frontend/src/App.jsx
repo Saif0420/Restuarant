@@ -56,9 +56,18 @@ function App() {
   }, []);
 
   function handleReset() {
+    const confirmed = window.confirm(
+      'Are you sure you want to reset this conversation? This action cannot be undone.'
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
     setMessages([
       createMessage('bot', 'Welcome to ByteBites! What would you like to order?'),
     ]);
+
     setExportError('');
   }
 
