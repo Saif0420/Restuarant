@@ -95,8 +95,7 @@ function App() {
     <div className="app-shell">
       <div className="chat-card card shadow-sm">
         <Header />
-        <MessageList messages={messages} />
-
+        <MessageList messages={messages} isWaiting={isWaiting} />
         {exportError && (
           <p className="export-error" role="alert">
             {exportError}
