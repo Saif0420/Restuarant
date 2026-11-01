@@ -54,10 +54,9 @@ function findMenuItem(itemText) {
     const searchText = itemText.toLowerCase();
 
     for (const [category, items] of Object.entries(MENU)) {
-        const item = items.find(menuItem => {
-            const name = menuItem.name.toLowerCase();
-            return searchText.includes(name);
-        });
+        const item = items.find(menuItem =>
+            searchText.includes(menuItem.name.toLowerCase())
+        );
 
         if (item) {
             return { ...item, category };
@@ -65,6 +64,13 @@ function findMenuItem(itemText) {
     }
 
     return null;
+}
+
+function calculateTotal(order) {
+    return order.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
+    );
 }
 
 function formatOrder(order) {
@@ -78,16 +84,26 @@ function formatOrder(order) {
         ).toFixed(2)}`
     );
 
-    const total = order.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0
-    );
+    return `Your ByteBites Order:\n${lines.join("\n")}\nTotal: €${calculateTotal(order).toFixed(2)}`;
+}
 
-    return `Your ByteBites Order:\n${lines.join("\n")}\nTotal: €${total.toFixed(2)}`;
+function formatCheckoutSummary(session) {
+    let summary = formatOrder(session.order);
+
+    summary += `\n\nOrder type: ${session.deliveryMethod}`;
+
+    if (session.deliveryMethod === "delivery") {
+        summary += `\nDelivery address: ${session.deliveryAddress}`;
+    }
+
+    return summary;
 }
 
 function createConversationEngine() {
     const session = createSession();
+
+    session.deliveryMethod = null;
+    session.deliveryAddress = "";
 
     function handleMessage(text) {
         const timestamp = new Date().toISOString();
@@ -113,12 +129,104 @@ function createConversationEngine() {
             ? Math.max(1, parseInt(quantityMatch[1], 10))
             : 1;
 
-        if (userText.includes("menu")) {
-            reply = "Welcome to ByteBites! Choose a category: burgers, pizza, pasta, sides, drinks, or desserts.";
+        // Handle delivery or pickup selection.
+        if (session.stage === "awaiting_fulfillment") {
 
+            if (
+                userText === "delivery" ||
+                userText.includes("home delivery")
+            ) {
+                session.deliveryMethod = "delivery";
+                session.stage = "awaiting_address";
+
+                reply = "Great! Please enter your complete delivery address.";
+
+            } else if (
+                userText === "pickup" ||
+                userText.includes("pick up") ||
+                userText.includes("collection")
+            ) {
+                session.deliveryMethod = "pickup";
+                session.deliveryAddress = "";
+                session.stage = "awaiting_confirmation";
+
+                reply = `${formatCheckoutSummary(session)}\n\nWould you like to confirm your order? Type "confirm order" to complete it.`;
+
+            } else {
+                wasFallback = true;
+                reply = "Please choose either Delivery or Pickup.";
+            }
+
+            // Handle delivery address.
+        } else if (session.stage === "awaiting_address") {
+
+            if (
+                userText === "cancel" ||
+                userText === "cancel order"
+            ) {
+                session.stage = "browsing";
+                session.deliveryMethod = null;
+
+                reply = "Delivery setup cancelled. Your cart has been kept.";
+
+            } else {
+                session.deliveryAddress = text.trim();
+                session.stage = "awaiting_confirmation";
+
+                reply = `${formatCheckoutSummary(session)}\n\nWould you like to confirm your order? Type "confirm order" to complete it.`;
+            }
+
+            // Handle checkout confirmation.
+        } else if (session.stage === "awaiting_confirmation") {
+
+            if (
+                userText === "no" ||
+                userText.includes("cancel order") ||
+                userText === "cancel"
+            ) {
+                session.stage = "browsing";
+                session.deliveryMethod = null;
+                session.deliveryAddress = "";
+
+                reply = "Checkout cancelled. Your cart has been kept, so you can make changes or try again.";
+
+            } else if (
+                userText.includes("confirm order") ||
+                userText === "confirm"
+            ) {
+                reply = `Your order has been confirmed!\n\n${formatCheckoutSummary(session)}`;
+
+                session.order = [];
+                session.stage = "browsing";
+                session.deliveryMethod = null;
+                session.deliveryAddress = "";
+
+            } else {
+                wasFallback = true;
+                reply = 'Please type "confirm order" to complete your order, or "cancel" to cancel checkout.';
+            }
+
+            // Start checkout.
+        } else if (
+            userText.includes("checkout") ||
+            userText.includes("check out") ||
+            userText.includes("complete my order")
+        ) {
+            if (session.order.length === 0) {
+                reply = "Your cart is empty. Add something from our menu before checkout.";
+            } else {
+                session.stage = "awaiting_fulfillment";
+
+                reply = "How would you like to receive your order?\n\nPlease choose Delivery or Pickup.";
+            }
+
+            // Remove an item.
         } else if (
             item &&
-            (userText.includes("remove") || userText.includes("delete"))
+            (
+                userText.includes("remove") ||
+                userText.includes("delete")
+            )
         ) {
             const existingItem = session.order.find(
                 orderItem => orderItem.name === item.name
@@ -140,6 +248,7 @@ function createConversationEngine() {
                 }
             }
 
+            // Update quantity.
         } else if (
             item &&
             (
@@ -156,9 +265,11 @@ function createConversationEngine() {
                 reply = `${item.name} is not in your cart yet.`;
             } else {
                 existingItem.quantity = requestedQuantity;
+
                 reply = `Quantity updated!\n${formatOrder(session.order)}`;
             }
 
+            // Add an item.
         } else if (item) {
             const existingItem = session.order.find(
                 orderItem => orderItem.name === item.name
@@ -176,39 +287,7 @@ function createConversationEngine() {
 
             reply = `${requestedQuantity} x ${item.name} added to your cart.\n${formatOrder(session.order)}`;
 
-        } else if (
-            userText.includes("checkout") ||
-            userText.includes("check out") ||
-            userText.includes("complete my order")
-        ) {
-            if (session.order.length === 0) {
-                reply = "Your cart is empty. Add something from our menu before checkout.";
-            } else {
-                reply = `${formatOrder(session.order)}\n\nWould you like to confirm this order? Type "confirm order" to complete it.`;
-
-                session.stage = "awaiting_confirmation";
-            }
-
-        } else if (
-            session.stage === "awaiting_confirmation" &&
-            (
-                userText.includes("cancel order") ||
-                userText === "no"
-            )
-        ) {
-            reply = "Checkout cancelled. Your cart has been kept, so you can make changes or try again.";
-
-            session.stage = "browsing";
-
-        } else if (
-            session.stage === "awaiting_confirmation" &&
-            userText.includes("confirm order")
-        ) {
-            reply = `Your order has been confirmed!\n\n${formatOrder(session.order)}`;
-
-            session.order = [];
-            session.stage = "browsing";
-
+            // Show cart.
         } else if (
             userText.includes("cart") ||
             userText.includes("order summary") ||
@@ -216,6 +295,7 @@ function createConversationEngine() {
         ) {
             reply = formatOrder(session.order);
 
+            // Clear cart.
         } else if (
             userText.includes("clear order") ||
             userText.includes("empty cart")
@@ -223,6 +303,10 @@ function createConversationEngine() {
             session.order = [];
 
             reply = "Your cart has been cleared.";
+
+            // Show menu.
+        } else if (userText.includes("menu")) {
+            reply = "Welcome to ByteBites! Choose a category: burgers, pizza, pasta, sides, drinks, or desserts.";
 
         } else if (userText.includes("burger")) {
             reply = formatMenu("burgers");
@@ -245,6 +329,7 @@ function createConversationEngine() {
         } else if (/^(hello|hi|hey)\b/.test(userText)) {
             reply = "Hey! Welcome to ByteBites. Would you like to see our menu?";
 
+            // Fallback handling.
         } else {
             wasFallback = true;
             reply = getFallbackResponse(session);
@@ -276,6 +361,8 @@ function createConversationEngine() {
 
     function resetConversation() {
         resetSession(session);
+        session.deliveryMethod = null;
+        session.deliveryAddress = "";
     }
 
     return {
