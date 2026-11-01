@@ -43,8 +43,8 @@ function formatMenu(category) {
 
     const title = category.charAt(0).toUpperCase() + category.slice(1);
 
-    const itemLines = items.map((item) =>
-        `${item.name} - €${item.price.toFixed(2)}`
+    const itemLines = items.map(
+        item => `${item.name} - €${item.price.toFixed(2)}`
     );
 
     return `${title} Menu:\n${itemLines.join("\n")}`;
@@ -54,7 +54,7 @@ function findMenuItem(itemText) {
     const searchText = itemText.toLowerCase();
 
     for (const [category, items] of Object.entries(MENU)) {
-        const item = items.find((menuItem) => {
+        const item = items.find(menuItem => {
             const name = menuItem.name.toLowerCase();
             return searchText.includes(name);
         });
@@ -72,8 +72,10 @@ function formatOrder(order) {
         return "Your cart is empty. Ask me to add something from our menu!";
     }
 
-    const lines = order.map((item) =>
-        `${item.quantity} x ${item.name} - €${(item.price * item.quantity).toFixed(2)}`
+    const lines = order.map(item =>
+        `${item.quantity} x ${item.name} - €${(
+            item.price * item.quantity
+        ).toFixed(2)}`
     );
 
     const total = order.reduce(
@@ -99,30 +101,80 @@ function createConversationEngine() {
         }
 
         const userText = text.trim().toLowerCase();
+
         let reply;
         let wasFallback = false;
 
         const item = findMenuItem(userText);
 
+        const quantityMatch = userText.match(/\b(\d+)\b/);
+
+        const requestedQuantity = quantityMatch
+            ? Math.max(1, parseInt(quantityMatch[1], 10))
+            : 1;
+
         if (userText.includes("menu")) {
             reply = "Welcome to ByteBites! Choose a category: burgers, pizza, pasta, sides, drinks, or desserts.";
 
+        } else if (
+            item &&
+            (userText.includes("remove") || userText.includes("delete"))
+        ) {
+            const existingItem = session.order.find(
+                orderItem => orderItem.name === item.name
+            );
+
+            if (!existingItem) {
+                reply = `${item.name} is not in your cart.`;
+            } else {
+                existingItem.quantity -= requestedQuantity;
+
+                if (existingItem.quantity <= 0) {
+                    session.order = session.order.filter(
+                        orderItem => orderItem.name !== item.name
+                    );
+
+                    reply = `${item.name} has been removed from your cart.`;
+                } else {
+                    reply = `${requestedQuantity} x ${item.name} removed.\n${formatOrder(session.order)}`;
+                }
+            }
+
+        } else if (
+            item &&
+            (
+                userText.includes("set quantity") ||
+                userText.includes("change quantity") ||
+                userText.includes("update quantity")
+            )
+        ) {
+            const existingItem = session.order.find(
+                orderItem => orderItem.name === item.name
+            );
+
+            if (!existingItem) {
+                reply = `${item.name} is not in your cart yet.`;
+            } else {
+                existingItem.quantity = requestedQuantity;
+                reply = `Quantity updated!\n${formatOrder(session.order)}`;
+            }
+
         } else if (item) {
             const existingItem = session.order.find(
-                (orderItem) => orderItem.name === item.name
+                orderItem => orderItem.name === item.name
             );
 
             if (existingItem) {
-                existingItem.quantity += 1;
+                existingItem.quantity += requestedQuantity;
             } else {
                 session.order.push({
                     name: item.name,
                     price: item.price,
-                    quantity: 1
+                    quantity: requestedQuantity
                 });
             }
 
-            reply = `${item.name} added to your cart. ${formatOrder(session.order)}`;
+            reply = `${requestedQuantity} x ${item.name} added to your cart.\n${formatOrder(session.order)}`;
 
         } else if (
             userText.includes("checkout") ||
@@ -133,14 +185,19 @@ function createConversationEngine() {
                 reply = "Your cart is empty. Add something from our menu before checkout.";
             } else {
                 reply = `${formatOrder(session.order)}\n\nWould you like to confirm this order? Type "confirm order" to complete it.`;
+
                 session.stage = "awaiting_confirmation";
             }
 
         } else if (
             session.stage === "awaiting_confirmation" &&
-            (userText.includes("cancel order") || userText === "no")
+            (
+                userText.includes("cancel order") ||
+                userText === "no"
+            )
         ) {
             reply = "Checkout cancelled. Your cart has been kept, so you can make changes or try again.";
+
             session.stage = "browsing";
 
         } else if (
@@ -148,6 +205,7 @@ function createConversationEngine() {
             userText.includes("confirm order")
         ) {
             reply = `Your order has been confirmed!\n\n${formatOrder(session.order)}`;
+
             session.order = [];
             session.stage = "browsing";
 
@@ -163,6 +221,7 @@ function createConversationEngine() {
             userText.includes("empty cart")
         ) {
             session.order = [];
+
             reply = "Your cart has been cleared.";
 
         } else if (userText.includes("burger")) {
@@ -183,7 +242,7 @@ function createConversationEngine() {
         } else if (userText.includes("dessert")) {
             reply = formatMenu("desserts");
 
-        } else if (/\b(hello|hi|hey)\b/.test(userText)) {
+        } else if (/^(hello|hi|hey)\b/.test(userText)) {
             reply = "Hey! Welcome to ByteBites. Would you like to see our menu?";
 
         } else {
