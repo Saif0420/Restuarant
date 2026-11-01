@@ -1,15 +1,40 @@
 export function downloadChatAsJson(messages) {
-  // Keep only what the brief asks for: sender, text, timestamp
-  const history = messages.map(({ sender, text, timestamp }) => ({ sender, text, timestamp }));
-  const json = JSON.stringify({ exportedAt: new Date().toISOString(), messages: history }, null, 2);
+  if (!Array.isArray(messages)) {
+    throw new Error('Invalid conversation data.');
+  }
 
+  if (messages.length === 0) {
+    throw new Error('There is no conversation to export.');
+  }
+
+  const history = messages.map(({ sender, text, timestamp }) => ({
+    sender,
+    text,
+    timestamp,
+  }));
+
+  const exportData = {
+    application: 'ByteBites',
+    exportedAt: new Date().toISOString(),
+    messageCount: history.length,
+    messages: history,
+  };
+
+  const json = JSON.stringify(exportData, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
-
   const link = document.createElement('a');
-  link.href = url;
-  link.download = `bytebites-chat-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
-  link.click();
 
-  setTimeout(() => URL.revokeObjectURL(url), 0); // free the memory after the download starts
+  try {
+    link.href = url;
+    link.download = `bytebites-chat-${new Date()
+      .toISOString()
+      .replace(/[:.]/g, '-')}.json`;
+
+    document.body.appendChild(link);
+    link.click();
+  } finally {
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
 }

@@ -83,3 +83,10 @@
 .chat-controls button {
   border-radius: 999px;
 }
+
+.export-error {
+  color: #c2441f;
+  font-size: 0.85rem;
+  margin: 0;
+  text-align: center;
+}

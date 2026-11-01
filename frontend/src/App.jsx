@@ -1,5 +1,7 @@
+
 import { useEffect, useState } from 'react';
 import { socket } from './socket';
+import { downloadChatAsJson } from './utils/exportChat';
 import Header from './components/Header';
 import MessageList from './components/MessageList';
 import MessageInput from './components/MessageInput';
@@ -12,7 +14,6 @@ function createMessage(sender, text, timestamp = new Date().toISOString()) {
   return { id: nextId, sender, text, timestamp };
 }
 
-// Accept { text, timestamp } as agreed, or a plain string like the lecture example
 function toBotMessage(data) {
   if (typeof data === 'string') return createMessage('bot', data);
   return createMessage('bot', data.text, data.timestamp);
@@ -22,17 +23,18 @@ function App() {
   const [messages, setMessages] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
   const [isWaiting, setIsWaiting] = useState(false);
+  const [exportError, setExportError] = useState('');
 
   useEffect(() => {
     function handleConnect() {
       setIsConnected(true);
-      setIsWaiting(true);     
+      setIsWaiting(true);
     }
 
     function handleDisconnect() {
       setIsConnected(false);
       setIsWaiting(false);
-      setMessages([]);      
+      setMessages([]);
     }
 
     function handleAnswer(data) {
@@ -51,43 +53,33 @@ function App() {
       socket.off('answer', handleAnswer);
       socket.disconnect();
     };
-  }, []); // [] = run once when App first appears
+  }, []);
 
   function handleReset() {
-  setMessages([
-    createMessage('bot', 'Welcome to ByteBites! What would you like to order?'),
-  ]);
+    setMessages([
+      createMessage('bot', 'Welcome to ByteBites! What would you like to order?'),
+    ]);
+    setExportError('');
   }
 
   function handleSend(text) {
     const message = createMessage('user', text);
     setMessages((previous) => [...previous, message]);
     setIsWaiting(true);
-    socket.emit('question', { text: message.text, timestamp: message.timestamp });
+    socket.emit('question', {
+      text: message.text,
+      timestamp: message.timestamp,
+    });
   }
 
   function handleExport() {
-    const exportData = {
-      application: 'ByteBites',
-      exportedAt: new Date().toISOString(),
-      messageCount: messages.length,
-      messages,
-    };
-
-    const json = JSON.stringify(exportData, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-
-    link.href = url;
-    link.download = `bytebites-chat-${new Date()
-      .toISOString()
-      .replace(/[:.]/g, '-')}.json`;
-
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+    try {
+      setExportError('');
+      downloadChatAsJson(messages);
+    } catch (error) {
+      console.error('Conversation export failed:', error);
+      setExportError('Unable to export conversation. Please try again.');
+    }
   }
 
   return (
@@ -95,6 +87,12 @@ function App() {
       <div className="chat-card card shadow-sm">
         <Header />
         <MessageList messages={messages} />
+
+        {exportError && (
+          <p className="export-error" role="alert">
+            {exportError}
+          </p>
+        )}
 
         <div className="card-footer chat-footer">
           <div className="chat-controls">
