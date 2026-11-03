@@ -71,19 +71,6 @@
   }
 }
 
-.chat-controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.75rem;
-  width: 100%;
-  flex-wrap: wrap;
-}
-
-.chat-controls button {
-  border-radius: 999px;
-}
-
 .export-error {
   color: #c2441f;
   font-size: 0.85rem;

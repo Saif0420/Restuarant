@@ -1,10 +1,10 @@
-
 import { useEffect, useState } from 'react';
 import { socket } from './socket';
 import { downloadChatAsJson } from './utils/exportChat';
 import Header from './components/Header';
 import MessageList from './components/MessageList';
 import MessageInput from './components/MessageInput';
+import Controls from './components/Controls';
 import './App.css';
 
 let nextId = 0;
@@ -14,6 +14,7 @@ function createMessage(sender, text, timestamp = new Date().toISOString()) {
   return { id: nextId, sender, text, timestamp };
 }
 
+// Accept { text, timestamp } as agreed, or a plain string like the lecture example
 function toBotMessage(data) {
   if (typeof data === 'string') return createMessage('bot', data);
   return createMessage('bot', data.text, data.timestamp);
@@ -53,7 +54,17 @@ function App() {
       socket.off('answer', handleAnswer);
       socket.disconnect();
     };
-  }, []);
+  }, []); // [] = run once when App first appears
+
+  function handleSend(text) {
+    const message = createMessage('user', text);
+    setMessages((previous) => [...previous, message]);
+    setIsWaiting(true);
+    socket.emit('question', {
+      text: message.text,
+      timestamp: message.timestamp,
+    });
+  }
 
   function handleReset() {
     const confirmed = window.confirm(
@@ -71,16 +82,6 @@ function App() {
     setExportError('');
   }
 
-  function handleSend(text) {
-    const message = createMessage('user', text);
-    setMessages((previous) => [...previous, message]);
-    setIsWaiting(true);
-    socket.emit('question', {
-      text: message.text,
-      timestamp: message.timestamp,
-    });
-  }
-
   function handleExport() {
     try {
       setExportError('');
@@ -92,9 +93,9 @@ function App() {
   }
 
   return (
-    <div className="app-shell">
+    <main className="app-shell">
       <div className="chat-card card shadow-sm">
-        <Header />
+        <Header isConnected={isConnected} />
         <MessageList messages={messages} isWaiting={isWaiting} />
         {exportError && (
           <p className="export-error" role="alert">
@@ -103,29 +104,16 @@ function App() {
         )}
 
         <div className="card-footer chat-footer">
-          <div className="chat-controls">
-            <button
-              type="button"
-              className="btn btn-outline-secondary btn-sm"
-              onClick={handleReset}
-            >
-              Reset conversation
-            </button>
-
-            <button
-              type="button"
-              className="btn btn-outline-secondary btn-sm"
-              onClick={handleExport}
-              disabled={messages.length === 0}
-            >
-              Export conversation (JSON)
-            </button>
-          </div>
-
-          <MessageInput onSend={handleSend} />
+          <Controls
+            onExport={handleExport}
+            onReset={handleReset}
+            canExport={messages.length > 0}
+            canReset={isConnected}
+          />
+          <MessageInput onSend={handleSend} disabled={!isConnected} />
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 
