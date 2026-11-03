@@ -29,13 +29,13 @@ function App() {
   useEffect(() => {
     function handleConnect() {
       setIsConnected(true);
-      setIsWaiting(true);
+      setMessages([]);        // every new connection is a new conversation on the server
+      setIsWaiting(true);     // the greeting is on its way
     }
 
     function handleDisconnect() {
       setIsConnected(false);
       setIsWaiting(false);
-      setMessages([]);
     }
 
     function handleAnswer(data) {
@@ -75,11 +75,10 @@ function App() {
       return;
     }
 
-    setMessages([
-      createMessage('bot', 'Welcome to ByteBites! What would you like to order?'),
-    ]);
-
+    setMessages([]);          // clear the screen at once
     setExportError('');
+    setIsWaiting(true);       // the server answers with a fresh greeting
+    socket.emit('reset');
   }
 
   function handleExport() {
