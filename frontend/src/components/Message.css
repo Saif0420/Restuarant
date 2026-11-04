@@ -32,6 +32,13 @@
   border-bottom-left-radius: 0.25rem;
 }
 
+/* A reply the server marked as an error, e.g. invalid input */
+.from-bot .bubble.is-error {
+  background: #fdecea;
+  color: #8a2a10;
+  border-color: #f3c2b3;
+}
+
 .bubble-text {
   margin: 0;
   white-space: pre-wrap;

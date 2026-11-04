@@ -17,7 +17,9 @@ function createMessage(sender, text, timestamp = new Date().toISOString()) {
 // Accept { text, timestamp } or a plain string; without a timestamp the arrival time is used
 function toBotMessage(data) {
   if (typeof data === 'string') return createMessage('bot', data);
-  return createMessage('bot', data.text, data.timestamp);
+  const message = createMessage('bot', data.text, data.timestamp);
+  // The server marks replies to invalid input with success: false
+  return data.success === false ? { ...message, isError: true } : message;
 }
 
 function App() {

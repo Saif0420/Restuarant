@@ -17,6 +17,7 @@ function MessageList({ messages, isWaiting }) {
           sender={message.sender}
           text={message.text}
           timestamp={message.timestamp}
+          isError={message.isError}
         />
       ))}
       {isWaiting && (
