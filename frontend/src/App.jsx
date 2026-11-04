@@ -109,7 +109,11 @@ function App() {
             canExport={messages.length > 0}
             canReset={isConnected}
           />
-          <MessageInput onSend={handleSend} disabled={!isConnected} />
+          <MessageInput
+            onSend={handleSend}
+            disabled={!isConnected}
+            isBusy={isWaiting}
+          />
         </div>
       </div>
     </main>
