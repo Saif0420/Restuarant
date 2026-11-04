@@ -6,7 +6,7 @@ export const socket = io({ autoConnect: false });
 
 // Event names agreed with the backend, kept in one place
 export const EVENTS = {
-  QUESTION: 'question',   // browser to server: the user's message
-  ANSWER: 'answer',       // server to browser: the bot's reply or greeting
-  RESET: 'reset',         // browser to server: start the conversation again
+  QUESTION: 'chat:message',   // browser to server: { message, timestamp }
+  ANSWER: 'chat:response',    // server to browser: { text, timestamp?, success? }
+  RESET: 'chat:reset',        // browser to server: start the conversation again
 };

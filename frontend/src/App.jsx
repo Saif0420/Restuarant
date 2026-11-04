@@ -14,7 +14,7 @@ function createMessage(sender, text, timestamp = new Date().toISOString()) {
   return { id: nextId, sender, text, timestamp };
 }
 
-// Accept { text, timestamp } as agreed, or a plain string like the lecture example
+// Accept { text, timestamp } or a plain string; without a timestamp the arrival time is used
 function toBotMessage(data) {
   if (typeof data === 'string') return createMessage('bot', data);
   return createMessage('bot', data.text, data.timestamp);
@@ -71,7 +71,7 @@ function App() {
     setMessages((previous) => [...previous, message]);
     setIsWaiting(true);
     socket.emit(EVENTS.QUESTION, {
-      text: message.text,
+      message: message.text,
       timestamp: message.timestamp,
     });
   }
