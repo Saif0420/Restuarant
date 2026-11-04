@@ -71,7 +71,8 @@
   }
 }
 
-.export-error {
+.export-error,
+.connection-error {
   color: #c2441f;
   font-size: 0.85rem;
   margin: 0;

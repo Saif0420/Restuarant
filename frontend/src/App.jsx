@@ -25,16 +25,24 @@ function App() {
   const [isConnected, setIsConnected] = useState(false);
   const [isWaiting, setIsWaiting] = useState(false);
   const [exportError, setExportError] = useState('');
+  const [hasConnectionError, setHasConnectionError] = useState(false);
 
   useEffect(() => {
     function handleConnect() {
+      // No clearing here: Socket.IO delivers the server's greeting before 'connect' fires
       setIsConnected(true);
-      setMessages([]);        // every new connection is a new conversation on the server
-      setIsWaiting(true);     // the greeting is on its way
+      setHasConnectionError(false);
     }
 
     function handleDisconnect() {
       setIsConnected(false);
+      setIsWaiting(false);
+      setMessages([]);        // the server forgets the conversation when the connection drops
+    }
+
+    // Socket.IO keeps retrying on its own, so this only informs the user
+    function handleConnectError() {
+      setHasConnectionError(true);
       setIsWaiting(false);
     }
 
@@ -45,12 +53,14 @@ function App() {
 
     socket.on('connect', handleConnect);
     socket.on('disconnect', handleDisconnect);
+    socket.on('connect_error', handleConnectError);
     socket.on('answer', handleAnswer);
     socket.connect();
 
     return () => {
       socket.off('connect', handleConnect);
       socket.off('disconnect', handleDisconnect);
+      socket.off('connect_error', handleConnectError);
       socket.off('answer', handleAnswer);
       socket.disconnect();
     };
@@ -96,6 +106,11 @@ function App() {
       <div className="chat-card card shadow-sm">
         <Header isConnected={isConnected} />
         <MessageList messages={messages} isWaiting={isWaiting} />
+        {hasConnectionError && (
+          <p className="connection-error" role="alert">
+            Can't reach ByteBites right now. Trying to reconnect…
+          </p>
+        )}
         {exportError && (
           <p className="export-error" role="alert">
             {exportError}
