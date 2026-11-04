@@ -1,37 +1,60 @@
 const express = require("express");
-const WebSocket = require("ws");
+const http = require("http");
+const { Server } = require("socket.io");
+const { text } = require("stream/consumers");
+require("dotenv").config();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+
+// Create HTTP Server
+const server = http.createServer(app);
+
+const io = new Server(server, {
+    cors: {
+        origin: [
+            "http://localhost:5173",
+            "http://localhost:3000"
+        ],
+        methods: ["GET", "POST"]
+    }
+});
 
 // HTTP route
 app.get("/", (req, res) => {
     res.send("ByteBites backend is running!");
 });
 
-// Starting of HTTP Server
-const server = app.listen(PORT, () => {
-    console.log(`ByteBites server running on port ${PORT}`);
-});
+io.on("connection", (socket) => {
+    console.log("A client connected to ByteBites!", socket.id);
 
-// WebSocket server
-const wss = new WebSocket.Server({ server });
+    socket.on("chat:message", (data) => {
+        console.log("Received message:", data);
 
-wss.on("connection", (socket) => {
-    console.log("A client connected to ByteBites!");
+        const message = 
+        typeof data === "string" ? data : data?.message;
 
-    socket.on("message", (message) => {
-        console.log("Received:", message.toString());
+        if (!message || typeof message !== "string") {
+            socket.emit("chat:response", {
+                success: false,
+                text: "Please enter a valid message."
+            });
+            return;
+        }
 
-        socket.send(
-            JSON.stringify({
-                type: "message",
-                text: "Hello! ByteBites has recieved your message."
-            })
-        );
+        socket.emit("chat:response", {
+            success: true,
+            type: "message",
+            text: "Hello! ByteBites received your message."
+        });
     });
 
-    socket.on("close", () => {
-        console.log("Client disconnected.");
+    socket.on("disconnect", (reason) => {
+        console.log("Client disconnected:", socket.id, reason);
     });
 });
+
+server.listen(PORT, () => {
+    console.log(`ByteBites server running on port ${PORT}`)
+});
+    
