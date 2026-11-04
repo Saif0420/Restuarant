@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { socket } from './socket';
+import { socket, EVENTS } from './socket';
 import { downloadChatAsJson } from './utils/exportChat';
 import Header from './components/Header';
 import MessageList from './components/MessageList';
@@ -54,14 +54,14 @@ function App() {
     socket.on('connect', handleConnect);
     socket.on('disconnect', handleDisconnect);
     socket.on('connect_error', handleConnectError);
-    socket.on('answer', handleAnswer);
+    socket.on(EVENTS.ANSWER, handleAnswer);
     socket.connect();
 
     return () => {
       socket.off('connect', handleConnect);
       socket.off('disconnect', handleDisconnect);
       socket.off('connect_error', handleConnectError);
-      socket.off('answer', handleAnswer);
+      socket.off(EVENTS.ANSWER, handleAnswer);
       socket.disconnect();
     };
   }, []); // [] = run once when App first appears
@@ -70,7 +70,7 @@ function App() {
     const message = createMessage('user', text);
     setMessages((previous) => [...previous, message]);
     setIsWaiting(true);
-    socket.emit('question', {
+    socket.emit(EVENTS.QUESTION, {
       text: message.text,
       timestamp: message.timestamp,
     });
@@ -88,7 +88,7 @@ function App() {
     setMessages([]);          // clear the screen at once
     setExportError('');
     setIsWaiting(true);       // the server answers with a fresh greeting
-    socket.emit('reset');
+    socket.emit(EVENTS.RESET);
   }
 
   function handleExport() {
