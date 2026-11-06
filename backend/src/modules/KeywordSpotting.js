@@ -1,4 +1,4 @@
-// const {getAllMenuItems} = require("../menu")
+const {getAllMenuItems} = require("../menu");
 
 const intents ={
     greeting: [
@@ -242,4 +242,27 @@ function detectIntent(message) {
     return matches.length > 0
         ? matches[0].intent
         : "unknown";
+}
+
+function detectMenuItems(message) {
+    const text = normalizeText(message);
+    const foundItems = [];
+
+    for (const item of getAllMenuitems()) {
+        const phrases = [item.name, ...item.aliases];
+
+        const matched = phrases.some((phrase) => 
+            containsPhrase(text, phrase)
+        );
+        
+        if (matched) {
+            foundItems.push({
+                id: item.id,
+                name: item.name,
+                price: item.price
+            });
+        }
+    }
+
+    return foundItems;
 }
