@@ -266,3 +266,41 @@ function detectMenuItems(message) {
 
     return foundItems;
 }
+
+function detectQuantity(message) {
+    const text = normalizeText(message);
+
+    const digitMatch = text.match(
+        /\(\d+)\s*(?:x|pieces?|pcs|orders?)?\b/
+    );
+
+    if (digitMatch) {
+        const quantity = Number(digitMatch[1]);
+
+        if (quantity >= 1 && quantity <= 99) {
+            return quantity;
+        } 
+    }
+
+    const wordNumbers = {
+        one: 1,
+        two: 2,
+        three: 3,
+        four: 4,
+        five: 5,
+        six: 6,
+        seven: 7,
+        eight: 8,
+        nine: 9,
+        ten:10
+    };
+
+    for (const [word, number] of Object.entries(wordNumbers)) {
+        if (containsPhrase(text, word)) {
+            return number;
+        }
+    }
+
+    return null;
+}
+
