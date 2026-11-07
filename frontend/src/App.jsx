@@ -1,10 +1,10 @@
-
 import { useEffect, useState } from 'react';
-import { socket } from './socket';
+import { socket, EVENTS } from './socket';
 import { downloadChatAsJson } from './utils/exportChat';
 import Header from './components/Header';
 import MessageList from './components/MessageList';
 import MessageInput from './components/MessageInput';
+import Controls from './components/Controls';
 import './App.css';
 
 let nextId = 0;
@@ -14,9 +14,12 @@ function createMessage(sender, text, timestamp = new Date().toISOString()) {
   return { id: nextId, sender, text, timestamp };
 }
 
+// Accept { text, timestamp } or a plain string; without a timestamp the arrival time is used
 function toBotMessage(data) {
   if (typeof data === 'string') return createMessage('bot', data);
-  return createMessage('bot', data.text, data.timestamp);
+  const message = createMessage('bot', data.text, data.timestamp);
+  // The server marks replies to invalid input with success: false
+  return data.success === false ? { ...message, isError: true } : message;
 }
 
 function App() {
@@ -24,17 +27,25 @@ function App() {
   const [isConnected, setIsConnected] = useState(false);
   const [isWaiting, setIsWaiting] = useState(false);
   const [exportError, setExportError] = useState('');
+  const [hasConnectionError, setHasConnectionError] = useState(false);
 
   useEffect(() => {
     function handleConnect() {
+      // No clearing here: Socket.IO delivers the server's greeting before 'connect' fires
       setIsConnected(true);
-      setIsWaiting(true);
+      setHasConnectionError(false);
     }
 
     function handleDisconnect() {
       setIsConnected(false);
       setIsWaiting(false);
-      setMessages([]);
+      setMessages([]);        // the server forgets the conversation when the connection drops
+    }
+
+    // Socket.IO keeps retrying on its own, so this only informs the user
+    function handleConnectError() {
+      setHasConnectionError(true);
+      setIsWaiting(false);
     }
 
     function handleAnswer(data) {
@@ -44,16 +55,28 @@ function App() {
 
     socket.on('connect', handleConnect);
     socket.on('disconnect', handleDisconnect);
-    socket.on('answer', handleAnswer);
+    socket.on('connect_error', handleConnectError);
+    socket.on(EVENTS.ANSWER, handleAnswer);
     socket.connect();
 
     return () => {
       socket.off('connect', handleConnect);
       socket.off('disconnect', handleDisconnect);
-      socket.off('answer', handleAnswer);
+      socket.off('connect_error', handleConnectError);
+      socket.off(EVENTS.ANSWER, handleAnswer);
       socket.disconnect();
     };
-  }, []);
+  }, []); // [] = run once when App first appears
+
+  function handleSend(text) {
+    const message = createMessage('user', text);
+    setMessages((previous) => [...previous, message]);
+    setIsWaiting(true);
+    socket.emit(EVENTS.QUESTION, {
+      message: message.text,
+      timestamp: message.timestamp,
+    });
+  }
 
   function handleReset() {
     const confirmed = window.confirm(
@@ -64,21 +87,10 @@ function App() {
       return;
     }
 
-    setMessages([
-      createMessage('bot', 'Welcome to ByteBites! What would you like to order?'),
-    ]);
-
+    setMessages([]);          // clear the screen at once
     setExportError('');
-  }
-
-  function handleSend(text) {
-    const message = createMessage('user', text);
-    setMessages((previous) => [...previous, message]);
-    setIsWaiting(true);
-    socket.emit('question', {
-      text: message.text,
-      timestamp: message.timestamp,
-    });
+    setIsWaiting(true);       // the server answers with a fresh greeting
+    socket.emit(EVENTS.RESET);
   }
 
   function handleExport() {
@@ -92,10 +104,15 @@ function App() {
   }
 
   return (
-    <div className="app-shell">
+    <main className="app-shell">
       <div className="chat-card card shadow-sm">
-        <Header />
+        <Header isConnected={isConnected} />
         <MessageList messages={messages} isWaiting={isWaiting} />
+        {hasConnectionError && (
+          <p className="connection-error" role="alert">
+            Can't reach ByteBites right now. Trying to reconnect…
+          </p>
+        )}
         {exportError && (
           <p className="export-error" role="alert">
             {exportError}
@@ -103,29 +120,20 @@ function App() {
         )}
 
         <div className="card-footer chat-footer">
-          <div className="chat-controls">
-            <button
-              type="button"
-              className="btn btn-outline-secondary btn-sm"
-              onClick={handleReset}
-            >
-              Reset conversation
-            </button>
-
-            <button
-              type="button"
-              className="btn btn-outline-secondary btn-sm"
-              onClick={handleExport}
-              disabled={messages.length === 0}
-            >
-              Export conversation (JSON)
-            </button>
-          </div>
-
-          <MessageInput onSend={handleSend} />
+          <Controls
+            onExport={handleExport}
+            onReset={handleReset}
+            canExport={messages.length > 0}
+            canReset={isConnected}
+          />
+          <MessageInput
+            onSend={handleSend}
+            disabled={!isConnected}
+            isBusy={isWaiting}
+          />
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 
