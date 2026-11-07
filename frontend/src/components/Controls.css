@@ -1,5 +1,10 @@
 .controls {
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+.controls .btn {
+  border-radius: 999px;
 }
