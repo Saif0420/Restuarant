@@ -304,3 +304,31 @@ function detectQuantity(message) {
     return null;
 }
 
+function detectEntities(message) {
+    return {
+        menuItems: detectMenuItems(message),
+        quantity: detectQuantity(message)
+    };
+}
+
+function analyzeMessage(message) {
+    const intent = detectIntent(message);
+    const entities = detectEntities(message);
+
+    return {
+        originalMessage: message,
+        normalizeMessage: normalizeText(message),
+        intent,
+        entities
+    };
+}
+
+module.exports = {
+    intents,
+    normalizeText,
+    detectIntent,
+    detectMenuItems,
+    detectQuantity,
+    detectEntities,
+    analyzeMessage
+};
