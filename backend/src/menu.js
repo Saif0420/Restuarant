@@ -222,3 +222,23 @@ const menu = {
     ]
 };
 
+function getAllMenuItems() {
+    return Object.values(menu).flat();
+}
+
+function findMenuItem(searchTerm) {
+    const term = searchTerm.toLowerCase().trim();
+
+    return getAllMenuItems().find((item) => {
+        return (
+            item.name.toLowerCase() === term ||
+            item.aliases.some((alias) => alias.toLowerCase() === term)
+        );
+    }) || null;
+}
+
+module.exports = {
+    menu, 
+    getAllMenuItems,
+    findMenuItem
+};
