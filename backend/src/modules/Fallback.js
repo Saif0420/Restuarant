@@ -1,12 +1,19 @@
+
 function getFallbackResponse(session) {
     session.fallbackCount += 1;
 
     if (session.fallbackCount >= 3) {
-        session.order = [];
         session.stage = "browsing";
         session.fallbackCount = 0;
 
-        return "I'm having trouble understanding. Let's start again! Your cart has been reset. You can type 'menu' to browse our menu.";
+        // Preserve the cart when restarting the conversation.
+        session.deliveryMethod = null;
+        session.deliveryAddress = "";
+
+        session.previousDeliveryMethod = null;
+        session.previousDeliveryAddress = "";
+
+        return "I'm having trouble understanding. Let's start again! Your cart has been kept. You can type 'menu' to browse our menu or 'cart' to view your order.";
     }
 
     if (session.fallbackCount === 2) {

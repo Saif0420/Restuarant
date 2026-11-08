@@ -190,7 +190,7 @@ function createConversationEngine() {
 
             } else {
                 wasFallback = true;
-                reply = "Please choose either Delivery or Pickup.";
+                reply = getFallbackResponse(session);
             }
 
             // Entering the initial delivery address.
@@ -274,7 +274,7 @@ function createConversationEngine() {
 
             } else {
                 wasFallback = true;
-                reply = "Please choose Delivery or Pickup, or type cancel to keep your previous selection.";
+                reply = getFallbackResponse(session);
             }
 
             // Confirmation and editing options.
@@ -354,8 +354,7 @@ function createConversationEngine() {
 
             } else {
                 wasFallback = true;
-
-                reply = 'You can type "confirm order", "change address", "change method", or "cancel checkout".';
+                reply = getFallbackResponse(session);
             }
 
             // Start checkout.
