@@ -271,7 +271,7 @@ function detectQuantity(message) {
     const text = normalizeText(message);
 
     const digitMatch = text.match(
-        /\(\d+)\s*(?:x|pieces?|pcs|orders?)?\b/
+        /\b(\d+)\s*(?:x|pieces?|pcs|orders?)?\b/
     );
 
     if (digitMatch) {
