@@ -5,6 +5,14 @@
   gap: 0.5rem;
 }
 
+<<<<<<< HEAD
 .controls .btn {
   border-radius: 999px;
 }
+=======
+@media (max-width: 480px) {
+  .controls .btn {
+    flex: 1;
+  }
+}
+>>>>>>> ee28809 (Make controls and header fit phone screens)
