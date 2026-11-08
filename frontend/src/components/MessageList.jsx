@@ -10,7 +10,7 @@ function MessageList({ messages, isWaiting }) {
   }, [messages, isWaiting]); // run again whenever either changes
 
   return (
-    <ul className="message-list" aria-live="polite">
+    <ul className="message-list" aria-live="polite" aria-label="Conversation">
       {messages.length === 0 && !isWaiting && (
         <li className="empty-state">No messages yet. Say hi to start your order!</li>
       )}

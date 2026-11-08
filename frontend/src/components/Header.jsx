@@ -7,7 +7,7 @@ function Header({ isConnected }) {
         <h1 className="chat-title">ByteBites</h1>
         <p className="chat-subtitle">Your restaurant ordering assistant</p>
       </div>
-      <span className={`status ${isConnected ? 'status-online' : 'status-offline'}`}>
+      <span className={`status ${isConnected ? 'status-online' : 'status-offline'}`} role="status">
         {isConnected ? 'Online' : 'Connecting…'}
       </span>
     </header>
