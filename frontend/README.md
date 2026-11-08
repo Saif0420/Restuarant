@@ -1,16 +1,39 @@
-# React + Vite
+# ByteBites frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+The chat window of ByteBites, built with React 19, Vite and Bootstrap 5.
+It talks to the backend over Socket.IO (WebSocket).
 
-Currently, two official plugins are available:
+## Scripts
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Run these in `frontend/`:
 
-## React Compiler
+| Command | What it does |
+| --- | --- |
+| `npm install` | Installs the dependencies |
+| `npm run dev` | Starts the dev server on http://localhost:5173 and forwards `/socket.io` to the backend on port 3000 |
+| `npm run build` | Builds the production files into `frontend/dist` |
+| `npm run preview` | Serves the production build locally |
+| `npm run lint` | Checks the code with oxlint |
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Structure
 
-## Expanding the Oxlint configuration
+| File | Job |
+| --- | --- |
+| `src/App.jsx` | Holds the messages and the socket connection |
+| `src/socket.js` | The one shared Socket.IO connection and the event names |
+| `src/components/Header.jsx` | Title and online status |
+| `src/components/MessageList.jsx` | The question-and-answer list, scrolls to the newest message |
+| `src/components/Message.jsx` | One message bubble with its time |
+| `src/components/MessageInput.jsx` | Text field and Send button |
+| `src/components/Controls.jsx` | Export and Reset buttons |
+| `src/utils/exportChat.js` | Downloads the conversation as `.json` |
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## Messages exchanged with the backend
+
+| Event | Direction | Payload |
+| --- | --- | --- |
+| `chat:message` | browser to server | `{ message, timestamp }` |
+| `chat:response` | server to browser | `{ text, timestamp?, success? }` |
+| `chat:reset` | browser to server | none; the server answers with a new greeting |
+
+The full setup manual is in the `README.md` at the repository root.
