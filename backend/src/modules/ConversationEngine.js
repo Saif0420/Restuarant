@@ -100,11 +100,36 @@ function formatCheckoutSummary(session) {
     return summary;
 }
 
+function isValidDeliveryAddress(address) {
+    const trimmedAddress = address.trim();
+
+    return (
+        trimmedAddress.length >= 8 &&
+        /[a-z]/i.test(trimmedAddress) &&
+        /\d/.test(trimmedAddress)
+    );
+}
+
+function savePreviousFulfillment(session) {
+    session.previousDeliveryMethod = session.deliveryMethod;
+    session.previousDeliveryAddress = session.deliveryAddress;
+}
+
+function restorePreviousFulfillment(session) {
+    session.deliveryMethod = session.previousDeliveryMethod;
+    session.deliveryAddress = session.previousDeliveryAddress;
+
+    session.previousDeliveryMethod = null;
+    session.previousDeliveryAddress = "";
+}
+
+function clearPreviousFulfillment(session) {
+    session.previousDeliveryMethod = null;
+    session.previousDeliveryAddress = "";
+}
+
 function createConversationEngine() {
     const session = createSession();
-
-    session.deliveryMethod = null;
-    session.deliveryAddress = "";
 
     function handleMessage(text) {
         const timestamp = new Date().toISOString();
@@ -153,8 +178,13 @@ function createConversationEngine() {
 
                 reply = `${formatCheckoutSummary(session)}\n\nWould you like to confirm your order? Type "confirm order" to complete it.`;
 
-            } else if (userText === "cancel" || userText === "cancel checkout") {
+            } else if (
+                userText === "cancel" ||
+                userText === "cancel checkout"
+            ) {
                 session.stage = "browsing";
+                session.deliveryMethod = null;
+                session.deliveryAddress = "";
 
                 reply = "Checkout cancelled. Your cart has been kept.";
 
@@ -166,12 +196,18 @@ function createConversationEngine() {
             // Entering the initial delivery address.
         } else if (session.stage === "awaiting_address") {
 
-            if (userText === "cancel" || userText === "cancel checkout") {
+            if (
+                userText === "cancel" ||
+                userText === "cancel checkout"
+            ) {
                 session.stage = "browsing";
                 session.deliveryMethod = null;
                 session.deliveryAddress = "";
 
                 reply = "Delivery setup cancelled. Your cart has been kept.";
+
+            } else if (!isValidDeliveryAddress(text)) {
+                reply = "Please enter a valid delivery address including a street name and house number. For example: Musterstrasse 10, Deggendorf.";
 
             } else {
                 session.deliveryAddress = text.trim();
@@ -183,14 +219,22 @@ function createConversationEngine() {
             // Changing an existing delivery address.
         } else if (session.stage === "editing_address") {
 
-            if (userText === "cancel" || userText === "cancel change") {
+            if (
+                userText === "cancel" ||
+                userText === "cancel change"
+            ) {
+                restorePreviousFulfillment(session);
                 session.stage = "awaiting_confirmation";
 
-                reply = `Address change cancelled. Your previous address has been kept.\n\n${formatCheckoutSummary(session)}\n\nType "confirm order" to complete your order.`;
+                reply = `Your fulfillment change has been cancelled. Your previous selection has been restored.\n\n${formatCheckoutSummary(session)}\n\nType "confirm order" to complete your order.`;
+
+            } else if (!isValidDeliveryAddress(text)) {
+                reply = "Please enter a valid delivery address including a street name and house number. For example: Musterstrasse 10, Deggendorf. Type cancel to keep your previous selection.";
 
             } else {
                 session.deliveryAddress = text.trim();
                 session.stage = "awaiting_confirmation";
+                clearPreviousFulfillment(session);
 
                 reply = `Your delivery address has been updated!\n\n${formatCheckoutSummary(session)}\n\nWould you like to confirm your order?`;
             }
@@ -206,7 +250,7 @@ function createConversationEngine() {
                 session.deliveryAddress = "";
                 session.stage = "editing_address";
 
-                reply = "Great! Please enter your new delivery address.";
+                reply = "Great! Please enter your new delivery address. Type cancel to restore your previous fulfillment method.";
 
             } else if (
                 userText.includes("pickup") ||
@@ -217,9 +261,13 @@ function createConversationEngine() {
                 session.deliveryAddress = "";
                 session.stage = "awaiting_confirmation";
 
-                reply = `Your order has been changed to pickup.\n\n${formatCheckoutSummary(session)}\n\nWould you like to confirm your order?`;
+                reply = `Your order has been changed to pickup.\n\n${formatCheckoutSummary(session)}\n\nType "cancel change" to restore your previous fulfillment method, or confirm your order.`;
 
-            } else if (userText === "cancel" || userText === "cancel change") {
+            } else if (
+                userText === "cancel" ||
+                userText === "cancel change"
+            ) {
+                restorePreviousFulfillment(session);
                 session.stage = "awaiting_confirmation";
 
                 reply = `Your previous delivery method has been kept.\n\n${formatCheckoutSummary(session)}`;
@@ -232,7 +280,13 @@ function createConversationEngine() {
             // Confirmation and editing options.
         } else if (session.stage === "awaiting_confirmation") {
 
-            if (
+            if (userText === "cancel change") {
+                restorePreviousFulfillment(session);
+                session.stage = "awaiting_confirmation";
+
+                reply = `Your previous delivery method has been restored.\n\n${formatCheckoutSummary(session)}\n\nYou can now confirm your order.`;
+
+            } else if (
                 userText === "no" ||
                 userText === "cancel" ||
                 userText.includes("cancel order") ||
@@ -241,6 +295,7 @@ function createConversationEngine() {
                 session.stage = "browsing";
                 session.deliveryMethod = null;
                 session.deliveryAddress = "";
+                clearPreviousFulfillment(session);
 
                 reply = "Checkout cancelled. Your cart has been kept, so you can make changes or try again.";
 
@@ -250,10 +305,14 @@ function createConversationEngine() {
                 userText.includes("update address")
             ) {
                 if (session.deliveryMethod === "delivery") {
+                    savePreviousFulfillment(session);
                     session.stage = "editing_address";
+
                     reply = "Please enter your new delivery address. Type cancel to keep your previous address.";
                 } else {
+                    savePreviousFulfillment(session);
                     session.stage = "changing_fulfillment";
+
                     reply = "Your order is currently pickup. Would you like to switch to Delivery or keep Pickup?";
                 }
 
@@ -266,6 +325,7 @@ function createConversationEngine() {
                 userText.includes("switch to pickup") ||
                 userText.includes("switch to delivery")
             ) {
+                savePreviousFulfillment(session);
                 session.stage = "changing_fulfillment";
 
                 reply = "Would you like to receive your order by Delivery or Pickup?";
@@ -276,12 +336,21 @@ function createConversationEngine() {
                 userText === "yes" ||
                 userText === "yes please"
             ) {
-                reply = `Your order has been confirmed!\n\n${formatCheckoutSummary(session)}`;
+                if (
+                    session.deliveryMethod === "delivery" &&
+                    !isValidDeliveryAddress(session.deliveryAddress)
+                ) {
+                    session.stage = "editing_address";
+                    reply = "Your delivery address is missing or invalid. Please enter a valid address before confirming your order.";
+                } else {
+                    reply = `Your order has been confirmed!\n\n${formatCheckoutSummary(session)}`;
 
-                session.order = [];
-                session.stage = "browsing";
-                session.deliveryMethod = null;
-                session.deliveryAddress = "";
+                    session.order = [];
+                    session.stage = "browsing";
+                    session.deliveryMethod = null;
+                    session.deliveryAddress = "";
+                    clearPreviousFulfillment(session);
+                }
 
             } else {
                 wasFallback = true;
@@ -300,6 +369,7 @@ function createConversationEngine() {
             } else {
                 session.deliveryMethod = null;
                 session.deliveryAddress = "";
+                clearPreviousFulfillment(session);
                 session.stage = "awaiting_fulfillment";
 
                 reply = "How would you like to receive your order?\n\nPlease choose Delivery or Pickup.";
@@ -443,8 +513,6 @@ function createConversationEngine() {
 
     function resetConversation() {
         resetSession(session);
-        session.deliveryMethod = null;
-        session.deliveryAddress = "";
     }
 
     return {
