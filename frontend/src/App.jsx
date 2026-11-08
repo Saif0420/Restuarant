@@ -5,20 +5,19 @@ import Header from './components/Header';
 import MessageList from './components/MessageList';
 import MessageInput from './components/MessageInput';
 import Controls from './components/Controls';
+import QuickReplies from './components/QuickReplies';
 import './App.css';
 
 let nextId = 0;
 
-function createMessage(sender, text, timestamp = new Date().toISOString()) {
+function createMessage(sender, text, timestamp = new Date().toISOString(), suggestions = []) {
   nextId += 1;
-  return { id: nextId, sender, text, timestamp };
+  return { id: nextId, sender, text, timestamp, suggestions };
 }
 
-// Accept { text, timestamp } or a plain string; without a timestamp the arrival time is used
 function toBotMessage(data) {
   if (typeof data === 'string') return createMessage('bot', data);
-  const message = createMessage('bot', data.text, data.timestamp);
-  // The server marks replies to invalid input with success: false
+  const message = createMessage('bot', data.text, data.timestamp, data.suggestions ?? []);
   return data.success === false ? { ...message, isError: true } : message;
 }
 
@@ -31,7 +30,6 @@ function App() {
 
   useEffect(() => {
     function handleConnect() {
-      // No clearing here: Socket.IO delivers the server's greeting before 'connect' fires
       setIsConnected(true);
       setHasConnectionError(false);
     }
@@ -39,10 +37,9 @@ function App() {
     function handleDisconnect() {
       setIsConnected(false);
       setIsWaiting(false);
-      setMessages([]);        // the server forgets the conversation when the connection drops
+      setMessages([]);
     }
 
-    // Socket.IO keeps retrying on its own, so this only informs the user
     function handleConnectError() {
       setHasConnectionError(true);
       setIsWaiting(false);
@@ -66,7 +63,10 @@ function App() {
       socket.off(EVENTS.ANSWER, handleAnswer);
       socket.disconnect();
     };
-  }, []); // [] = run once when App first appears
+  }, []);
+
+  const lastMessage = messages.at(-1);
+  const suggestions = lastMessage?.sender === 'bot' ? lastMessage.suggestions : [];
 
   function handleSend(text) {
     const message = createMessage('user', text);
@@ -87,9 +87,9 @@ function App() {
       return;
     }
 
-    setMessages([]);          // clear the screen at once
+    setMessages([]);
     setExportError('');
-    setIsWaiting(true);       // the server answers with a fresh greeting
+    setIsWaiting(true);
     socket.emit(EVENTS.RESET);
   }
 
@@ -120,6 +120,11 @@ function App() {
         )}
 
         <div className="card-footer chat-footer">
+          <QuickReplies
+            suggestions={suggestions}
+            onSelect={handleSend}
+            disabled={!isConnected || isWaiting}
+          />
           <Controls
             onExport={handleExport}
             onReset={handleReset}

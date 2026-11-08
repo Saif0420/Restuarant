@@ -26,6 +26,7 @@ Run these in `frontend/`:
 | `src/components/Message.jsx` | One message bubble with its time |
 | `src/components/MessageInput.jsx` | Text field and Send button |
 | `src/components/Controls.jsx` | Export and Reset buttons |
+| `src/components/QuickReplies.jsx` | Buttons for the replies the bot suggests |
 | `src/utils/exportChat.js` | Downloads the conversation as `.json` |
 
 ## Messages exchanged with the backend
@@ -33,7 +34,7 @@ Run these in `frontend/`:
 | Event | Direction | Payload |
 | --- | --- | --- |
 | `chat:message` | browser to server | `{ message, timestamp }` |
-| `chat:response` | server to browser | `{ text, timestamp?, success? }` |
+| `chat:response` | server to browser | `{ text, timestamp?, success?, suggestions? }` |
 | `chat:reset` | browser to server | none; the server answers with a new greeting |
 
 The full setup manual is in the `README.md` at the repository root.

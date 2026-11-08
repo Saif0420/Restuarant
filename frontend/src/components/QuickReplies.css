@@ -1,0 +1,30 @@
+.quick-replies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.quick-reply {
+  --bs-btn-color: var(--bb-primary-dark);
+  --bs-btn-border-color: var(--bb-primary);
+  --bs-btn-hover-bg: var(--bb-primary);
+  --bs-btn-hover-border-color: var(--bb-primary);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-active-bg: var(--bb-primary-dark);
+  --bs-btn-active-border-color: var(--bb-primary-dark);
+  --bs-btn-active-color: #fff;
+  --bs-btn-disabled-color: var(--bb-primary-dark);
+  --bs-btn-disabled-border-color: var(--bb-primary);
+  border-radius: 999px;
+}
+
+@media (max-width: 480px) {
+  .quick-replies {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+  }
+  .quick-reply {
+    white-space: nowrap;
+  }
+}
