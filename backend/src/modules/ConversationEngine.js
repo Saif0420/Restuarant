@@ -133,14 +133,17 @@ function createConversationEngine() {
         // Initial delivery or pickup selection.
         if (session.stage === "awaiting_fulfillment") {
 
-            if (userText === "delivery" || userText.includes("home delivery")) {
+            if (
+                userText === "delivery" ||
+                userText.includes("delivery")
+            ) {
                 session.deliveryMethod = "delivery";
                 session.stage = "awaiting_address";
 
                 reply = "Great! Please enter your complete delivery address.";
 
             } else if (
-                userText === "pickup" ||
+                userText.includes("pickup") ||
                 userText.includes("pick up") ||
                 userText.includes("collection")
             ) {
@@ -195,7 +198,10 @@ function createConversationEngine() {
             // Changing delivery or pickup.
         } else if (session.stage === "changing_fulfillment") {
 
-            if (userText === "delivery" || userText.includes("home delivery")) {
+            if (
+                userText === "delivery" ||
+                userText.includes("delivery")
+            ) {
                 session.deliveryMethod = "delivery";
                 session.deliveryAddress = "";
                 session.stage = "editing_address";
@@ -203,7 +209,7 @@ function createConversationEngine() {
                 reply = "Great! Please enter your new delivery address.";
 
             } else if (
-                userText === "pickup" ||
+                userText.includes("pickup") ||
                 userText.includes("pick up") ||
                 userText.includes("collection")
             ) {
@@ -266,7 +272,9 @@ function createConversationEngine() {
 
             } else if (
                 userText.includes("confirm order") ||
-                userText === "confirm"
+                userText === "confirm" ||
+                userText === "yes" ||
+                userText === "yes please"
             ) {
                 reply = `Your order has been confirmed!\n\n${formatCheckoutSummary(session)}`;
 
