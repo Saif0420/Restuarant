@@ -11,6 +11,9 @@ function MessageList({ messages, isWaiting }) {
 
   return (
     <ul className="message-list" aria-live="polite">
+      {messages.length === 0 && !isWaiting && (
+        <li className="empty-state">No messages yet. Say hi to start your order!</li>
+      )}
       {messages.map((message) => (
         <Message
           key={message.id}

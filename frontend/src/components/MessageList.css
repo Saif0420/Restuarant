@@ -6,3 +6,11 @@
   padding: 1rem;
   background: var(--bb-bg);
 }
+
+
+.empty-state {
+  margin-top: 2rem;
+  text-align: center;
+  color: var(--bb-muted);
+  font-size: 0.9rem;
+}
